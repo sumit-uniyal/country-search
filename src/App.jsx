@@ -1,41 +1,51 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import './App.css';
-import CountryCard from './components/CountryCard';
-
-const API =
-  'https://countries-search-data-prod-812920491762.asia-south1.run.app/countries';
 
 function App() {
   const [countries, setCountries] = useState([]);
   const [search, setSearch] = useState('');
+  const [filteredCountries, setFilteredCountries] = useState([]);
 
-  // Fetch Countries
   useEffect(() => {
-    fetch(API)
+    fetch('https://restcountries.com/v3.1/all')
       .then((res) => res.json())
-      .then((data) => setCountries(data))
-      .catch((err) => console.error('API Error:', err)); // ✅ Error handling
+      .then((data) => {
+        setCountries(data);
+        setFilteredCountries(data);
+      })
+      .catch((err) => {
+        console.error('API Error:', err);
+      });
   }, []);
 
-  // Filter Logic
-  const filteredCountries = countries.filter((country) =>
-    country.common.toLowerCase().includes(search.toLowerCase())
-  );
+  useEffect(() => {
+    const result = countries.filter((country) =>
+      country.name.common.toLowerCase().includes(search.toLowerCase())
+    );
+    setFilteredCountries(result);
+  }, [search, countries]);
 
   return (
     <div className="container">
       <input
         type="text"
-        placeholder="Search for countries..."
+        placeholder="Search Country"
         value={search}
         onChange={(e) => setSearch(e.target.value)}
-        className="searchBar"
       />
 
-      <div className="grid">
-        {filteredCountries.map((country, index) => (
-          <CountryCard key={index} country={country} />
-        ))}
+      <div className="countriesContainer">
+        {filteredCountries.length === 0 ? (
+          <p>No countries found</p>
+        ) : (
+          filteredCountries.map((country, index) => (
+            <div key={index} className="countryCard">
+              <img src={country.flags.png} alt={country.name.common} />
+
+              <h2>{country.name.common}</h2>
+            </div>
+          ))
+        )}
       </div>
     </div>
   );
